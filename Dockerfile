@@ -1,7 +1,7 @@
 ##### DEPENDENCIES
 # Important! Driver must be bridge!
 # Use the official Node.js 18 Alpine image as the base image for the "deps-os" stage
-FROM --platform=linux/amd64 node:18-alpine3.16 AS deps-os
+FROM --platform=linux/amd64 node:18-alpine3.17 AS deps-os
 
 ARG NODE_ENV
 ARG NEXT_PUBLIC_NODE_ENV
@@ -13,9 +13,9 @@ ARG NEXT_PUBLIC_ARTEMIS_BASEAPI_URL
 RUN apk add --no-cache libc6-compat openssl
 
 # Use the official Node.js 18 Alpine image as the base image for the "deps" stage
-FROM --platform=linux/amd64 node:18-alpine3.16 AS deps
+FROM --platform=linux/amd64 node:18-alpine3.17 AS deps
 
-# Set the working directory to /app
+# Set the working directory
 WORKDIR /app
 
 # Copy the package.json, yarn.lock, package-lock.json, and pnpm-lock.yaml files to the working directory
@@ -32,12 +32,7 @@ RUN \
 ##### BUILDER
 
 # Use the official Node.js 18 Alpine image as the base image for the "builder" stage
-FROM --platform=linux/amd64 node:18-alpine3.16 AS builder
-
-ARG NODE_ENV
-ARG DOCKER_BUILD
-ARG AUTH_SECRET
-ARG NEXT_PUBLIC_NODE_ENV
+FROM --platform=linux/amd64 node:18-alpine3.17 AS builder
 
 # Set the working directory to /app
 WORKDIR /app
@@ -78,14 +73,17 @@ ENV NODE_ENV production
 # Set the environment variable to disable Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Create a non-root "nodejs" group and user for running the application
-RUN addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 --ingroup nodejs nextjs \
-  && chown -R nextjs:nodejs /app
+# Copy the environment variable validation script and make it executable
+COPY validate_env_vars.sh .
+RUN chmod +x validate_env_vars.sh
 
-# Copy the environment variable validation script and run it only if NODE_ENV is production and DOCKER_BUILD is "1"
-COPY --chown=nextjs:nodejs validate_env_vars.sh /app/
-RUN if [ "$NODE_ENV" = "production" ] && [ "$DOCKER_BUILD" = "1" ]; then chmod +x /app/validate_env_vars.sh && /app/validate_env_vars.sh; fi
+# Run the environment variable validation script
+# RUN ./validate_env_vars.sh
+
+# Create a non-root "nodejs" group and user for running the application
+# RUN addgroup --system --gid 1001 nodejs \
+#   && adduser --system --uid 1001 --ingroup nodejs nextjs \
+#   && chown -R nextjs:nodejs /app
 
 # Copy the application files to the "runner" stage
 COPY --from=builder /app/next.config.mjs ./
