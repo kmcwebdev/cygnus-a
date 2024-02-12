@@ -3,6 +3,12 @@
 # Use the official Node.js 18 Alpine image as the base image for the "deps-os" stage
 FROM --platform=linux/amd64 node:18-alpine3.16 AS deps-os
 
+ARG NODE_ENV
+ARG NEXT_PUBLIC_NODE_ENV
+ARG DOCKER_BUILD
+ARG AUTH_SECRET
+ARG NEXT_PUBLIC_ARTEMIS_BASEAPI_URL
+
 # Install the OS dependencies required by the application
 RUN apk add --no-cache libc6-compat openssl
 
@@ -52,9 +58,9 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 # Build the application using the preferred package manager
 RUN \
-  if [ -f yarn.lock ]; then export SKIP_ENV_VALIDATION=1 && yarn build; \
-  elif [ -f package-lock.json ]; then export SKIP_ENV_VALIDATION=1 && npm run build; \
-  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && export SKIP_ENV_VALIDATION=1 && pnpm run build; \
+  if [ -f yarn.lock ]; then SKIP_ENV_VALIDATION=1 yarn build; \
+  elif [ -f package-lock.json ]; then SKIP_ENV_VALIDATION=1 npm run build; \
+  elif [ -f pnpm-lock.yaml ]; then yarn global add pnpm && SKIP_ENV_VALIDATION=1 pnpm run build; \
   else echo "Lockfile not found." && exit 1; \
   fi
 
