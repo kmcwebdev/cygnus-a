@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -19,6 +19,11 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { cn } from "@/lib/utils";
 
 import { handleCredentialsLogin } from "@/app/auth/login/_login";
+import { useGlobalStore } from "@/lib/store";
+
+const setCount = () => {
+  useGlobalStore.setState({ count: 1 });
+};
 
 const formSchema = z.object({
   username: z.string().min(4, {
