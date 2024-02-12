@@ -81,9 +81,9 @@ RUN chmod +x validate_env_vars.sh
 # RUN ./validate_env_vars.sh
 
 # Create a non-root "nodejs" group and user for running the application
-# RUN addgroup --system --gid 1001 nodejs \
-#   && adduser --system --uid 1001 --ingroup nodejs nextjs \
-#   && chown -R nextjs:nodejs /app
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 --ingroup nodejs nextjs \
+  && chown -R nextjs:nodejs /app
 
 # Copy the application files to the "runner" stage
 COPY --from=builder /app/next.config.mjs ./
